@@ -1,25 +1,32 @@
 import { faker } from "@faker-js/faker";
-
 import { prisma } from "./lib/prisma";
 
 async function main() {
-  // Create a new author with a book
-  const author = await prisma.author.create({
-    data: {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      books: {
-        create: {
-          title: faker.book.title(),
+  for (let i = 0; i < 5; i++) {
+    const publisher = await prisma.publisher.create({
+      data: {
+        name: faker.company.name(),
+      },
+    });
+
+    const author = await prisma.author.create({
+      data: {
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        books: {
+          create: {
+            title: faker.book.title(),
+            publisherId: publisher.id,
+          },
         },
       },
-    },
-    include: {
-      books: true,
-    },
-  });
+      include: {
+        books: true,
+      },
+    });
 
-  console.log("Created author:", author);
+    console.log("Created author:", author.name, "under publisher:", publisher.name);
+  }
 }
 
 main()
