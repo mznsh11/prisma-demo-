@@ -5,12 +5,11 @@ async function main() {
   // Create genres first
   const genreNames = ["Fiction", "Thriller", "Sci-Fi", "Romance", "Mystery"];
   const genres = await Promise.all(
-    genreNames.map((name) =>
-      prisma.genre.create({ data: { name } })
-    )
+    genreNames.map((name) => prisma.genre.create({ data: { name } }))
   );
 
   // Create 5 publishers, authors and books
+  const books = [];
   for (let i = 0; i < 5; i++) {
     const publisher = await prisma.publisher.create({
       data: {
@@ -40,7 +39,33 @@ async function main() {
       },
     });
 
+    books.push(author.books[0]);
     console.log("Created author:", author.name, "under publisher:", publisher.name);
+  }
+
+  // Create 5 users
+  const users = await Promise.all(
+    Array.from({ length: 5 }, () =>
+      prisma.user.create({
+        data: {
+          name: faker.person.fullName(),
+        },
+      })
+    )
+  );
+
+  // Create reviews linking users to books
+  for (let i = 0; i < 5; i++) {
+    const review = await prisma.review.create({
+      data: {
+        rating: faker.number.int({ min: 1, max: 5 }),
+        comment: faker.lorem.sentence(),
+        userId: users[i].id,
+        bookId: books[i].id,
+      },
+    });
+
+    console.log("Created review with rating:", review.rating, "for book:", books[i].title);
   }
 
   console.log("Created genres:", genreNames);
