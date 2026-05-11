@@ -2,6 +2,15 @@ import { faker } from "@faker-js/faker";
 import { prisma } from "./lib/prisma";
 
 async function main() {
+  // Create genres first
+  const genreNames = ["Fiction", "Thriller", "Sci-Fi", "Romance", "Mystery"];
+  const genres = await Promise.all(
+    genreNames.map((name) =>
+      prisma.genre.create({ data: { name } })
+    )
+  );
+
+  // Create 5 publishers, authors and books
   for (let i = 0; i < 5; i++) {
     const publisher = await prisma.publisher.create({
       data: {
@@ -17,6 +26,12 @@ async function main() {
           create: {
             title: faker.book.title(),
             publisherId: publisher.id,
+            genres: {
+              connect: [
+                { id: genres[i % genres.length].id },
+                { id: genres[(i + 1) % genres.length].id },
+              ],
+            },
           },
         },
       },
@@ -27,6 +42,8 @@ async function main() {
 
     console.log("Created author:", author.name, "under publisher:", publisher.name);
   }
+
+  console.log("Created genres:", genreNames);
 }
 
 main()
